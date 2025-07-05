@@ -8,6 +8,23 @@ type Emotion = {
   angle: number;
 };
 
+interface EmotionScores {
+  joy: number;
+  love: number;
+  peace: number;
+  calm: number;
+  sadness: number;
+  fear: number;
+  anger: number;
+  excitement: number;
+}
+
+interface EmotionRadarProps {
+  emotions?: EmotionScores;
+  onEmotionUpdate?: (emotions: EmotionScores) => void;
+  readOnly?: boolean;
+}
+
 const EMOTIONS: Omit<Emotion, 'value'>[] = [
   { name: 'Joy', color: 'emotion-joy', angle: 0 },
   { name: 'Love', color: 'emotion-love', angle: 45 },
@@ -19,15 +36,48 @@ const EMOTIONS: Omit<Emotion, 'value'>[] = [
   { name: 'Excitement', color: 'emotion-excitement', angle: 315 },
 ];
 
-const EmotionRadar = () => {
+const EmotionRadar: React.FC<EmotionRadarProps> = ({ 
+  emotions: externalEmotions, 
+  onEmotionUpdate,
+  readOnly = false 
+}) => {
   const [emotions, setEmotions] = useState<Emotion[]>(
     EMOTIONS.map(emotion => ({ ...emotion, value: 30 }))
   );
 
+  // Update internal state when external emotions change
+  useEffect(() => {
+    if (externalEmotions) {
+      const newEmotions = EMOTIONS.map(emotion => ({
+        ...emotion,
+        value: externalEmotions[emotion.name.toLowerCase() as keyof EmotionScores] || 0
+      }));
+      setEmotions(newEmotions);
+    }
+  }, [externalEmotions]);
+
   const updateEmotion = (index: number, value: number) => {
-    setEmotions(prev => prev.map((emotion, i) => 
+    if (readOnly) return;
+    
+    const newEmotions = emotions.map((emotion, i) => 
       i === index ? { ...emotion, value } : emotion
-    ));
+    );
+    setEmotions(newEmotions);
+    
+    // Convert to EmotionScores format and notify parent
+    if (onEmotionUpdate) {
+      const emotionScores: EmotionScores = {
+        joy: newEmotions.find(e => e.name === 'Joy')?.value || 0,
+        love: newEmotions.find(e => e.name === 'Love')?.value || 0,
+        peace: newEmotions.find(e => e.name === 'Peace')?.value || 0,
+        calm: newEmotions.find(e => e.name === 'Calm')?.value || 0,
+        sadness: newEmotions.find(e => e.name === 'Sadness')?.value || 0,
+        fear: newEmotions.find(e => e.name === 'Fear')?.value || 0,
+        anger: newEmotions.find(e => e.name === 'Anger')?.value || 0,
+        excitement: newEmotions.find(e => e.name === 'Excitement')?.value || 0,
+      };
+      onEmotionUpdate(emotionScores);
+    }
   };
 
   const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
@@ -180,9 +230,17 @@ const EmotionRadar = () => {
         
         {/* Controls */}
         <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-foreground mb-4">
-            Adjust Your Emotions
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-foreground mb-4">
+              {readOnly ? 'Live Emotion Analysis' : 'Adjust Your Emotions'}
+            </h3>
+            {readOnly && (
+              <div className="text-xs text-green-400 flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                Real-time
+              </div>
+            )}
+          </div>
           
           {emotions.map((emotion, index) => (
             <div key={emotion.name} className="space-y-2">
@@ -205,16 +263,20 @@ const EmotionRadar = () => {
                 min={0}
                 step={1}
                 className="w-full"
+                disabled={readOnly}
               />
             </div>
           ))}
           
           <div className="pt-4 space-y-2">
             <div className="text-sm text-muted-foreground">
-              Total Emotional Energy: {emotions.reduce((sum, e) => sum + e.value, 0)}%
+              Total Emotional Energy: {Math.round(emotions.reduce((sum, e) => sum + e.value, 0))}%
             </div>
             <div className="text-xs text-muted-foreground">
-              Tip: Balance is key to emotional well-being
+              {readOnly 
+                ? 'Emotions updated automatically from analysis'
+                : 'Tip: Balance is key to emotional well-being'
+              }
             </div>
           </div>
         </div>
