@@ -1,42 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Emotion Radar Design System - Dark theme with neon accents */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark theme base */
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 222 47% 6%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 222 47% 6%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Neon primary colors */
+    --primary: 195 100% 50%;
+    --primary-foreground: 222 47% 4%;
+    --primary-glow: 195 100% 70%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 222 47% 8%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 222 47% 8%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 100% 60%;
+    --accent-foreground: 210 40% 98%;
+    --accent-glow: 280 100% 80%;
+
+    /* Emotion-specific colors */
+    --emotion-joy: 45 100% 60%;
+    --emotion-love: 330 100% 60%;
+    --emotion-peace: 160 60% 50%;
+    --emotion-excitement: 15 100% 60%;
+    --emotion-sadness: 220 60% 50%;
+    --emotion-anger: 0 80% 60%;
+    --emotion-fear: 270 50% 50%;
+    --emotion-calm: 180 40% 60%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 222 47% 12%;
+    --input: 222 47% 8%;
+    --ring: 195 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --gradient-background: radial-gradient(ellipse at top, hsl(222 47% 6%), hsl(222 47% 4%));
+    --gradient-card: linear-gradient(135deg, hsl(222 47% 6% / 0.8), hsl(222 47% 8% / 0.4));
+
+    /* Shadows and glows */
+    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.3);
+    --shadow-accent-glow: 0 0 30px hsl(var(--accent) / 0.3);
+    --shadow-card: 0 10px 30px -5px hsl(222 47% 2% / 0.5);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +129,70 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+    background: var(--gradient-background);
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Glass card effect */
+  .glass-card {
+    @apply backdrop-blur-md border border-border/50;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Neon glow effects */
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .glow-accent {
+    box-shadow: var(--shadow-accent-glow);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  /* Emotion-specific utilities */
+  .emotion-joy { color: hsl(var(--emotion-joy)); }
+  .emotion-love { color: hsl(var(--emotion-love)); }
+  .emotion-peace { color: hsl(var(--emotion-peace)); }
+  .emotion-excitement { color: hsl(var(--emotion-excitement)); }
+  .emotion-sadness { color: hsl(var(--emotion-sadness)); }
+  .emotion-anger { color: hsl(var(--emotion-anger)); }
+  .emotion-fear { color: hsl(var(--emotion-fear)); }
+  .emotion-calm { color: hsl(var(--emotion-calm)); }
+
+  /* Radar chart styles */
+  .radar-line {
+    stroke: hsl(var(--border));
+    stroke-width: 1;
+    fill: none;
+  }
+
+  .radar-area {
+    fill: hsl(var(--primary) / 0.2);
+    stroke: hsl(var(--primary));
+    stroke-width: 2;
+  }
+
+  .radar-point {
+    fill: hsl(var(--primary));
+    r: 4;
+    transition: var(--transition-smooth);
+  }
+
+  .radar-point:hover {
+    r: 6;
+    fill: hsl(var(--primary-glow));
+    filter: drop-shadow(0 0 8px hsl(var(--primary)));
   }
 }
