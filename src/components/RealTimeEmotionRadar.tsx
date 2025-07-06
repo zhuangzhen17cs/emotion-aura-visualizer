@@ -40,48 +40,48 @@ const RealTimeEmotionRadar = () => {
   const handleVideoEmotionUpdate = (emotions: EmotionScores) => {
     if (!autoUpdate) return;
     
-    if (audioAnalyzing && currentSource === 'combined') {
+    if (audioAnalyzing) {
       // Blend video and audio emotions when both are active
       setCurrentEmotions(prev => ({
-        joy: (prev.joy + emotions.joy) / 2,
-        love: (prev.love + emotions.love) / 2,
-        peace: (prev.peace + emotions.peace) / 2,
-        calm: (prev.calm + emotions.calm) / 2,
-        sadness: (prev.sadness + emotions.sadness) / 2,
-        fear: (prev.fear + emotions.fear) / 2,
-        anger: (prev.anger + emotions.anger) / 2,
-        excitement: (prev.excitement + emotions.excitement) / 2
+        joy: Math.round((prev.joy * 0.3 + emotions.joy * 0.7)),
+        love: Math.round((prev.love * 0.3 + emotions.love * 0.7)),
+        peace: Math.round((prev.peace * 0.3 + emotions.peace * 0.7)),
+        calm: Math.round((prev.calm * 0.3 + emotions.calm * 0.7)),
+        sadness: Math.round((prev.sadness * 0.3 + emotions.sadness * 0.7)),
+        fear: Math.round((prev.fear * 0.3 + emotions.fear * 0.7)),
+        anger: Math.round((prev.anger * 0.3 + emotions.anger * 0.7)),
+        excitement: Math.round((prev.excitement * 0.3 + emotions.excitement * 0.7))
       }));
-    } else if (!audioAnalyzing) {
+      setCurrentSource('combined');
+    } else {
       setCurrentEmotions(emotions);
       setCurrentSource('video');
     }
     
-    // Add to history
     setAnalysisHistory(prev => [...prev.slice(-19), emotions]);
   };
 
   const handleAudioEmotionUpdate = (emotions: EmotionScores) => {
     if (!autoUpdate) return;
     
-    if (videoAnalyzing && currentSource === 'combined') {
+    if (videoAnalyzing) {
       // Blend audio and video emotions when both are active
       setCurrentEmotions(prev => ({
-        joy: (prev.joy + emotions.joy) / 2,
-        love: (prev.love + emotions.love) / 2,
-        peace: (prev.peace + emotions.peace) / 2,
-        calm: (prev.calm + emotions.calm) / 2,
-        sadness: (prev.sadness + emotions.sadness) / 2,
-        fear: (prev.fear + emotions.fear) / 2,
-        anger: (prev.anger + emotions.anger) / 2,
-        excitement: (prev.excitement + emotions.excitement) / 2
+        joy: Math.round((prev.joy * 0.7 + emotions.joy * 0.3)),
+        love: Math.round((prev.love * 0.7 + emotions.love * 0.3)),
+        peace: Math.round((prev.peace * 0.7 + emotions.peace * 0.3)),
+        calm: Math.round((prev.calm * 0.7 + emotions.calm * 0.3)),
+        sadness: Math.round((prev.sadness * 0.7 + emotions.sadness * 0.3)),
+        fear: Math.round((prev.fear * 0.7 + emotions.fear * 0.3)),
+        anger: Math.round((prev.anger * 0.7 + emotions.anger * 0.3)),
+        excitement: Math.round((prev.excitement * 0.7 + emotions.excitement * 0.3))
       }));
-    } else if (!videoAnalyzing) {
+      setCurrentSource('combined');
+    } else {
       setCurrentEmotions(emotions);
       setCurrentSource('audio');
     }
     
-    // Add to history
     setAnalysisHistory(prev => [...prev.slice(-19), emotions]);
   };
 

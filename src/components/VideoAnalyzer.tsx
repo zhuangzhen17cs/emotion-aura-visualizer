@@ -199,7 +199,7 @@ const VideoAnalyzer: React.FC<VideoAnalyzerProps> = ({
           className={`w-full rounded-lg bg-secondary/20 ${
             isAnalyzing ? 'block' : 'hidden'
           }`}
-          style={{ maxHeight: '200px', objectFit: 'cover' }}
+          style={{ aspectRatio: '16/9', objectFit: 'cover' }}
           muted
           playsInline
         />

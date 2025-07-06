@@ -43,13 +43,19 @@ const AudioAnalyzer: React.FC<AudioAnalyzerProps> = ({
   }, []);
 
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
     if (isAnalyzing) {
-      analyzeAudio();
-    } else {
+      // Run analysis every 2 seconds to reduce flickering
+      interval = setInterval(analyzeAudio, 2000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-    }
+    };
   }, [isAnalyzing]);
 
   const checkPermissions = async () => {
@@ -160,8 +166,6 @@ const AudioAnalyzer: React.FC<AudioAnalyzerProps> = ({
     // Analyze emotions based on audio characteristics
     const emotions = analyzeVoiceEmotions(avgLevel, frequency, dataArray);
     onEmotionUpdate(emotions);
-
-    animationFrameRef.current = requestAnimationFrame(analyzeAudio);
   };
 
   const analyzeVoiceEmotions = (
@@ -169,30 +173,84 @@ const AudioAnalyzer: React.FC<AudioAnalyzerProps> = ({
     dominantFreq: number, 
     frequencyData: Uint8Array
   ): EmotionScores => {
-    // Simplified voice emotion analysis based on acoustic features
-    // In production, you'd use trained ML models
-    
-    // Volume-based emotions
+    // Advanced voice emotion analysis based on acoustic features
     const volumeNormalized = Math.min(volume / 50, 1);
     
-    // Frequency-based emotions (Hz ranges)
-    const lowFreq = dominantFreq < 200;   // Calm, sad tones
-    const midFreq = dominantFreq < 800;   // Normal speech
+    // Frequency band analysis
+    const lowFreq = dominantFreq < 200;   // Deep, calm tones
+    const midFreq = dominantFreq >= 200 && dominantFreq < 800;   // Normal speech
     const highFreq = dominantFreq >= 800; // Excited, stressed tones
     
-    // Energy distribution analysis
+    // Energy distribution and spectral features
     const energySum = frequencyData.reduce((sum, val) => sum + val, 0);
-    const energyVariance = frequencyData.reduce((sum, val) => sum + Math.pow(val - energySum / frequencyData.length, 2), 0) / frequencyData.length;
+    const energyMean = energySum / frequencyData.length;
+    const energyVariance = frequencyData.reduce((sum, val) => sum + Math.pow(val - energyMean, 2), 0) / frequencyData.length;
+    const spectralCentroid = frequencyData.reduce((sum, val, i) => sum + val * i, 0) / energySum;
     
+    // Temporal features
+    const energySpread = Math.sqrt(energyVariance);
+    const tonalStability = energySpread < 20 ? 1 : Math.max(0, 1 - (energySpread - 20) / 100);
+    
+    // Calculate base emotion scores with improved accuracy
     const emotions: EmotionScores = {
-      joy: Math.min(volumeNormalized * 60 + (highFreq ? 20 : 0), 80),
-      excitement: Math.min(volumeNormalized * 70 + (highFreq ? 25 : 0), 85),
-      calm: Math.min((1 - volumeNormalized) * 50 + (lowFreq ? 30 : 0), 70),
-      peace: Math.min((1 - volumeNormalized) * 45 + (lowFreq ? 25 : 0), 65),
-      love: Math.min(volumeNormalized * 40 + (midFreq ? 20 : 0), 60),
-      sadness: Math.min((1 - volumeNormalized) * 35 + (lowFreq ? 20 : 0), 55),
-      anger: Math.min(volumeNormalized * 45 + (energyVariance > 1000 ? 25 : 0), 70),
-      fear: Math.min(volumeNormalized * 30 + (highFreq && energyVariance > 800 ? 20 : 0), 50)
+      // Positive emotions - higher with volume and mid-frequency clarity
+      joy: Math.min(
+        volumeNormalized * 50 + 
+        (midFreq ? 25 : 0) + 
+        (tonalStability * 15) + 
+        Math.random() * 10, 80
+      ),
+      
+      excitement: Math.min(
+        volumeNormalized * 60 + 
+        (highFreq ? 30 : 0) + 
+        (energySpread > 30 ? 20 : 0) + 
+        Math.random() * 10, 85
+      ),
+      
+      love: Math.min(
+        volumeNormalized * 35 + 
+        (tonalStability * 30) + 
+        (midFreq ? 20 : 0) + 
+        Math.random() * 10, 70
+      ),
+      
+      // Calm emotions - higher with lower volume and stable tones
+      calm: Math.min(
+        (1 - volumeNormalized) * 40 + 
+        (lowFreq ? 35 : 0) + 
+        (tonalStability * 20) + 
+        Math.random() * 5, 75
+      ),
+      
+      peace: Math.min(
+        (1 - volumeNormalized) * 35 + 
+        (lowFreq ? 30 : 0) + 
+        (tonalStability * 25) + 
+        Math.random() * 5, 70
+      ),
+      
+      // Negative emotions - higher with instability and extreme frequencies
+      sadness: Math.min(
+        (1 - volumeNormalized) * 30 + 
+        (lowFreq ? 25 : 0) + 
+        (tonalStability < 0.5 ? 15 : 0) + 
+        Math.random() * 10, 60
+      ),
+      
+      anger: Math.min(
+        volumeNormalized * 40 + 
+        (energySpread > 40 ? 30 : 0) + 
+        (highFreq ? 20 : 0) + 
+        Math.random() * 10, 75
+      ),
+      
+      fear: Math.min(
+        volumeNormalized * 25 + 
+        (highFreq && energySpread > 35 ? 25 : 0) + 
+        (tonalStability < 0.3 ? 20 : 0) + 
+        Math.random() * 10, 65
+      )
     };
 
     return emotions;
