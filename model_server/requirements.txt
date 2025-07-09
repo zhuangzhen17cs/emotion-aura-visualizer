@@ -1,0 +1,5 @@
+# model_server/requirements.txt
+fastapi
+uvicorn
+transformers>=4.0
+torch             # 或者 tensorflow，取决于你的模型依赖
